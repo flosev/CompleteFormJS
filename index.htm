@@ -127,7 +127,6 @@
 			investigElem = investigElem.concat(loc,street, city, state,zipFirst);
 			for (var  j = 0; j < tableLength.length ; j++) {
 				if (zipSecond[j]){investigElem = investigElem.concat(zipSecond[j]);
-					console.log(zipSecond[j]);
 				}
 			}
 			//fill new log-element
@@ -149,8 +148,10 @@
 					//Define and choose label name
 					if (this.parentNode.tagName == 'SPAN') var label = this.parentNode.parentNode.children[0].children[1].innerHTML;
 					if (this.parentNode.tagName == 'TD') {
-						for(var i, j = 0; i = this.parentNode.parentNode.children[j].children[0]; j++) {
+						for(var  j = 0; j < 5; j++) {
+								i = this.parentNode.parentNode.children[j].children[0];
 							if(i == this) {
+								console.log(j);
 								var label = this.parentNode.parentNode.parentNode.parentNode.children[0].children[0].children[j].innerHTML;
 								break;
 							}
