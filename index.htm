@@ -1,0 +1,177 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+	<script src="jquery-1.9.0.min.js"></script>
+
+</head>
+
+<body>
+	<iframe src="topFrame.htm" name="topFrame" marginWidth="0" height="30px" marginHeight="0" noResize="" scrolling="no" width="100%" frameborder="0">
+	</iframe>
+	<iframe  src="mainForm.htm" name="SFOMainFrame" width="100%" style="height: 500px;"  frameborder="0"></iframe>
+	<button id="FillPage">Fill page</button>
+	
+	<div>
+		<p>Changes log</p>
+		<p id="trackedChanges"></p>
+
+
+
+	</div>
+
+	<script type="text/javascript">
+		var items = {
+			InsuredName: 'Perfect customer',
+			DBA: 'PERF Co',
+			EffectiveDate: '05/05/2013',
+			YIB: '4',
+			Entity: 'Corporation',
+			FEIN: '987654321',
+			Email: 'perfect@perfect.com',
+			ExpMod: '0.98', //could be empty
+			locations: [{
+				locNum: '1',
+				Street: '111 Main Str',
+				City: 'Los Angeles',
+				State: 'CA',
+				Zip: '90012 - 1234'
+			},
+			{
+				locNum: '2',
+				Street: '222 Main Str',
+				City: 'Los Angeles',
+				State: 'CA',
+				Zip: '90012'
+			},
+			{
+				locNum: '3',
+				Street: '333 Main Str',
+				City: 'Los Angeles',
+				State: 'CA',
+				Zip: '90012'
+			}
+			]
+		};
+
+		//------------------------------
+		//enter your code here
+		var fillPage = document.getElementById('FillPage');
+		//id Area for main form
+		var idArea = {
+			insuredName:'InsuredOrPrincipal[InsuredOrPrincipalInfo.InsuredOrPrincipalRoleCd=\'Insured\'].GeneralPartyInfo.NameInfo.CommlName.CommercialName',
+			doingBusinessAs:'InsuredOrPrincipal[InsuredOrPrincipalInfo.InsuredOrPrincipalRoleCd=\'Insured\'].GeneralPartyInfo.NameInfo.CommlName.SupplementaryNameInfo[SupplementaryNameCd=\'DBA\'].SupplementaryName',
+			effectiveDate:'PolicyEffectiveDt',
+			yearsInBusiness:"YIB",
+			legalEntity:"LegalEntity",
+			fein:"InsuredOrPrincipal[InsuredOrPrincipalInfo.InsuredOrPrincipalRoleCd='Insured'].GeneralPartyInfo.NameInfo.TaxIdentity[TaxIdTypeCd='FEIN'].TaxId",
+			insuredMail:"insuredEmailAddr"
+		}
+		fillPage.addEventListener('click', function(){
+			function getElemId (innerName){
+				return document.getElementsByName("SFOMainFrame")[0].contentWindow.document.getElementById(innerName);
+			}
+			function getElemName (innerName){
+				return document.getElementsByName("SFOMainFrame")[0].contentWindow.document.getElementsByName(innerName)[0];
+			}
+			var insuredName =     getElemId(idArea.insuredName);
+			var doingBusinessAs = getElemId(idArea.doingBusinessAs);
+			var effectiveDate =   getElemId(idArea.effectiveDate);
+			var yearsInBusiness = getElemId(idArea.yearsInBusiness);
+			var legalEntity = getElemId(idArea.legalEntity);
+			var fein =            getElemId(idArea.fein);
+			var insuredMail = getElemId(idArea.insuredMail);
+			//
+			insuredName.value=items.InsuredName;
+			doingBusinessAs.value=items.DBA;
+			effectiveDate.value=items.EffectiveDate;
+			yearsInBusiness.value=items.YIB;
+			for(var i, j = 0; i = legalEntity.options[j].innerHTML; j++) {
+				if(i == items.Entity) {
+					legalEntity.selectedIndex = j;
+					break;
+				}
+			}
+			fein.value=items.FEIN;
+			insuredMail.value=items.Email;
+
+			//address table
+			var tableLength = document.getElementsByName("SFOMainFrame")[0].contentWindow.document.getElementById('locationsTable').children[1].children;
+			//var loc,street,city,state,zipFirst,zipSecond = [];
+			var loc = [];
+			var street = [];
+			var city = [];
+			var state = [];
+			var zipFirst = [];
+			var zipSecond = [];
+
+			for (var  j = 0; j < tableLength.length ; j++) {
+				loc[j] = getElemName("locationsTable:"+j+":locationNum");
+				street[j] = getElemName("locationsTable:"+j+":_id76");
+				city[j] = getElemName("locationsTable:"+j+":_id78");
+				state[j] = getElemName("locationsTable:"+j+":_id80");
+				zipFirst[j] = getElemName("locationsTable:"+j+":_id83");
+				zipSecond[j] = getElemName("locationsTable:"+j+":_id85");
+				loc[j].value = items.locations[j].locNum;
+				street[j].value = items.locations[j].Street;
+				city[j].value = items.locations[j].City;
+				state[j].value = items.locations[j].State;
+				zipFirst[j].value = items.locations[j].Zip.split('-')[0];
+				if (items.locations[j].Zip.split('-')[1]) {
+					zipSecond[j].value = items.locations[j].Zip.split('-')[1]
+				}
+			}
+			// Changes log
+			var mouseCount = 0;
+			var investigElem = [insuredName,doingBusinessAs,effectiveDate,yearsInBusiness,legalEntity,fein,insuredMail];
+			investigElem = investigElem.concat(loc,street, city, state,zipFirst);
+			for (var  j = 0; j < tableLength.length ; j++) {
+				if (zipSecond[j]){investigElem = investigElem.concat(zipSecond[j]);
+					console.log(zipSecond[j]);
+				}
+			}
+			//fill new log-element
+			for (var elem, j = 0; elem = investigElem[j]; j++ ) {
+				elem.addEventListener('keyup', function(){
+					var getIndex = mouseCount-1;
+					var putNewValue = document.getElementById('New'+getIndex);
+					putNewValue.innerHTML = this.value;
+				});
+				//create new log - element
+				elem.addEventListener('mousedown', function () {
+					var newLogString = document.createElement("p");
+					var nameValue = document.createElement("span");
+					var oldValue = document.createElement("span");
+					var newValue = document.createElement("span");
+					var toValue = document.createElement("span");
+					oldValue.id = "Old"+mouseCount;
+					newValue.id = "New"+mouseCount;
+					//Define and choose label name
+					if (this.parentNode.tagName == 'SPAN') var label = this.parentNode.parentNode.children[0].children[1].innerHTML;
+					if (this.parentNode.tagName == 'TD') {
+						for(var i, j = 0; i = this.parentNode.parentNode.children[j].children[0]; j++) {
+							if(i == this) {
+								var label = this.parentNode.parentNode.parentNode.parentNode.children[0].children[0].children[j].innerHTML;
+								break;
+							}
+						}
+					}
+					//fill log - element
+					newLogString.appendChild(nameValue).innerHTML = label;
+					newLogString.appendChild(oldValue).innerHTML = '  - '+this.value;
+					newLogString.appendChild(toValue).innerHTML = '  to  ';
+					newLogString.appendChild(newValue);
+					newLogString.id = 'log'+mouseCount;
+					document.getElementById("trackedChanges").insertBefore(newLogString, null);
+					mouseCount++;
+
+				});
+			}
+
+		});
+
+
+	</script>
+
+</body>
+</html>
