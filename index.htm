@@ -42,20 +42,21 @@
 				Street: '222 Main Str',
 				City: 'Los Angeles',
 				State: 'CA',
-				Zip: '90012'
+				Zip: '90013'
 			},
 			{
 				locNum: '3',
 				Street: '333 Main Str',
 				City: 'Los Angeles',
 				State: 'CA',
-				Zip: '90012'
+				Zip: '90014 - 345'
 			}
 			]
 		};
 
 		//------------------------------
 		//enter your code here
+		//my email flosev75@gmail.com
 		var fillPage = document.getElementById('FillPage');
 		//id Area for main form
 		var idArea = {
@@ -97,7 +98,6 @@
 
 			//address table
 			var tableLength = document.getElementsByName("SFOMainFrame")[0].contentWindow.document.getElementById('locationsTable').children[1].children;
-			//var loc,street,city,state,zipFirst,zipSecond = [];
 			var loc = [];
 			var street = [];
 			var city = [];
@@ -111,64 +111,76 @@
 				city[j] = getElemName("locationsTable:"+j+":_id78");
 				state[j] = getElemName("locationsTable:"+j+":_id80");
 				zipFirst[j] = getElemName("locationsTable:"+j+":_id83");
-				zipSecond[j] = getElemName("locationsTable:"+j+":_id85");
+				//struggle with owner's hardcode
+				zipSecond[j] = getElemName("locationsTable:"+j+":_id84");
+				if (!zipSecond[j]){
+					zipSecond[j] = getElemName("locationsTable:0:_id85");
+					zipSecond[j].name = "locationsTable:"+j+":_id84";
+				}
+				if (j == items.locations.length) break;
 				loc[j].value = items.locations[j].locNum;
 				street[j].value = items.locations[j].Street;
 				city[j].value = items.locations[j].City;
 				state[j].value = items.locations[j].State;
 				zipFirst[j].value = items.locations[j].Zip.split('-')[0];
 				if (items.locations[j].Zip.split('-')[1]) {
-					zipSecond[j].value = items.locations[j].Zip.split('-')[1]
+					zipSecond[j].value = items.locations[j].Zip.split('-')[1];
+				} else {
+					zipSecond[j].value = '';
 				}
 			}
 			// Changes log
 			var mouseCount = 0;
 			var investigElem = [insuredName,doingBusinessAs,effectiveDate,yearsInBusiness,legalEntity,fein,insuredMail];
-			investigElem = investigElem.concat(loc,street, city, state,zipFirst);
-			for (var  j = 0; j < tableLength.length ; j++) {
-				if (zipSecond[j]){investigElem = investigElem.concat(zipSecond[j]);
-				}
-			}
+			investigElem = investigElem.concat(loc,street, city, state,zipFirst, zipSecond);
 			//fill new log-element
-			for (var elem, j = 0; elem = investigElem[j]; j++ ) {
-				elem.addEventListener('keyup', function(){
-					var getIndex = mouseCount-1;
-					var putNewValue = document.getElementById('New'+getIndex);
-					putNewValue.innerHTML = this.value;
-				});
-				//create new log - element
-				elem.addEventListener('mousedown', function () {
-					var newLogString = document.createElement("p");
-					var nameValue = document.createElement("span");
-					var oldValue = document.createElement("span");
-					var newValue = document.createElement("span");
-					var toValue = document.createElement("span");
-					oldValue.id = "Old"+mouseCount;
-					newValue.id = "New"+mouseCount;
-					//Define and choose label name
-					if (this.parentNode.tagName == 'SPAN') var label = this.parentNode.parentNode.children[0].children[1].innerHTML;
-					if (this.parentNode.tagName == 'TD') {
-						for(var  j = 0; j < 5; j++) {
-								i = this.parentNode.parentNode.children[j].children[0];
-							if(i == this) {
-								console.log(j);
-								var label = this.parentNode.parentNode.parentNode.parentNode.children[0].children[0].children[j].innerHTML;
-								break;
+				for (var elem, j = 0; elem = investigElem[j]; j++) {
+					elem.addEventListener('keyup', function () {
+						var getIndex = mouseCount - 1;
+						var putNewValue = document.getElementById('New' + getIndex);
+						putNewValue.innerHTML = this.value;
+					});
+					//create new log - element
+						function createLogElement() {
+						var newLogString = document.createElement("p");
+						var nameValue = document.createElement("span");
+						var oldValue = document.createElement("span");
+						var newValue = document.createElement("span");
+						var toValue = document.createElement("span");
+						oldValue.id = "Old" + mouseCount;
+						newValue.id = "New" + mouseCount;
+						//Define and choose label name
+						if (this.parentNode.tagName == 'SPAN') var label = this.parentNode.parentNode.children[0].children[1].innerHTML;
+						if (this.parentNode.tagName == 'TD') {
+							for (var j = 0; j < 6; j++) {
+								if (j == 5) {
+									i = this.parentNode.parentNode.children[j - 1].children[1];
+								} else {
+									i = this.parentNode.parentNode.children[j].children[0];
+								}
+								if (i == this) {
+									if (j < 5) {
+										var label = this.parentNode.parentNode.parentNode.parentNode.children[0].children[0].children[j].innerHTML;
+									} else {
+										var label = this.parentNode.parentNode.parentNode.parentNode.children[0].children[0].children[j - 1].innerHTML;
+									}
+									break;
+								}
 							}
 						}
+						//fill log - element
+						newLogString.appendChild(nameValue).innerHTML = label;
+						newLogString.appendChild(oldValue).innerHTML = '  - ' + this.value;
+						newLogString.appendChild(toValue).innerHTML = '  to  ';
+						newLogString.appendChild(newValue);
+						newLogString.id = 'log' + mouseCount;
+						document.getElementById("trackedChanges").insertBefore(newLogString, null);
+						mouseCount++;
+
 					}
-					//fill log - element
-					newLogString.appendChild(nameValue).innerHTML = label;
-					newLogString.appendChild(oldValue).innerHTML = '  - '+this.value;
-					newLogString.appendChild(toValue).innerHTML = '  to  ';
-					newLogString.appendChild(newValue);
-					newLogString.id = 'log'+mouseCount;
-					document.getElementById("trackedChanges").insertBefore(newLogString, null);
-					mouseCount++;
-
-				});
-			}
-
+					elem.removeEventListener('mousedown', createLogElement)
+					elem.addEventListener('mousedown', createLogElement);
+				}
 		});
 
 
